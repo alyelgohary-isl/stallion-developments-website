@@ -1,0 +1,24 @@
+# Secrets — never commit (contains HIGGSFIELD_API_KEY)
+.env
+.env.*
+!.env.example
+
+# Claude Code / agent tooling
+.claude/
+.playwright-mcp/
+
+# Source media not served by the site (only frames/ is referenced by the pages)
+videos/
+key_frames/
+
+# OS / editor junk
+.DS_Store
+._*
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Logs and temp
+*.log
+*.tmp
