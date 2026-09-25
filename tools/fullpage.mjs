@@ -16,7 +16,7 @@ await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 await page.waitForTimeout(1500);
 const top = await page.evaluate(() => { const el = document.querySelector(".page-flow") || document.querySelector("main"); return el.getBoundingClientRect().top + window.scrollY; });
 const total = await page.evaluate(() => document.body.scrollHeight);
-const hasFilm = await page.evaluate(() => !!document.getElementById("scroll-container"));
+const hasFilm = true; // always stitch: pages use vh-based runways, so the viewport must stay fixed
 if (!hasFilm) {
   // no vh-driven film: just grow the viewport to the flow and shoot once
   const h = Math.min(total - top, 12000);
@@ -29,7 +29,7 @@ if (!hasFilm) {
   // film pages: keep the viewport (vh layout) and stitch viewport-sized strips
   const { PNG } = await import("node:buffer").then(() => ({ PNG: null })).catch(() => ({ PNG: null }));
   const strips = [];
-  for (let y = top; y < total; y += vh) {
+  for (let y = top; y < total; y += vh - 100) {   // overlap so the cropped header never leaves a gap
     await page.evaluate((yy) => window.scrollTo(0, yy), y);
     await page.waitForTimeout(700);
     const actual = await page.evaluate(() => window.scrollY);

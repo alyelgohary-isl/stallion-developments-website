@@ -512,10 +512,11 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .steps p { margin-top: 0.5rem; color: var(--ink-soft); font-size: 0.96rem; }
 
 /* Gallery */
-.gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.8rem; }
+/* 3 equal columns of squares; the first (aerial) takes a 2x2 block, five more fill the rest */
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
 .gallery figure { display: grid; grid-template-rows: 1fr auto; min-width: 0; }
 .gallery img { width: 100%; height: auto; object-fit: cover; border-radius: 14px; aspect-ratio: 1; }
-.gallery figure:first-child { grid-row: span 2; }
+.gallery figure:first-child { grid-column: span 2; grid-row: span 2; }
 .gallery figure:first-child img { aspect-ratio: auto; height: 100%; min-height: 0; }
 .gallery figcaption { font-size: 0.8rem; color: var(--ink-mute); margin-top: 0.4rem; }
 
@@ -687,6 +688,7 @@ a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid v
   .steps { grid-template-columns: 1fr; }
   .gallery { grid-template-columns: 1fr 1fr; }
   .gallery figure:first-child { grid-column: span 2; grid-row: auto; }
+  .gallery figure:first-child img { aspect-ratio: 16 / 10; height: auto; }
   .form .row { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .badges { grid-template-columns: 1fr; }
