@@ -15,7 +15,10 @@ const HEADER_H = 84;               // css px, keeps the card clear of the fixed 
 const SOURCES = {
   film:     { dir: "frames",          prefix: "frame_", count: 246 }, // 6 clips @12fps
   bedroom:  { dir: "frames/bedroom",  prefix: "br_",    count: 61  }, // cutaway: rise into the upper floor
-  backyard: { dir: "frames/backyard", prefix: "by_",    count: 61  }, // cutaway: through the frame to the yard
+  living:   { dir: "frames/living",   prefix: "lv_",    count: 61  }, // cutaway: front door into the living room
+  kitchen:  { dir: "frames/kitchen",  prefix: "kt_",    count: 61  }, // living room through to the kitchen
+  deck:     { dir: "frames/deck",     prefix: "dk_",    count: 61  }, // kitchen out to the deck
+  backyard: { dir: "frames/backyard", prefix: "by_",    count: 61  }, // return leg: deck back through the frame to the street
   glow:     { dir: "frames/glow",     prefix: "gl_",    count: 61  }, // ending: dusk, windows warm up
 };
 const FILES = [];
@@ -41,7 +44,11 @@ const TIMELINE = [
   { id: "hold2b", units: 0.1,  f0: F("film", 73),  f1: F("film", 73)  },
   { id: "clip3",  units: 1.0,  f0: F("film", 74),  f1: F("film", 110) }, // ground floor strips
   { id: "hold3",  units: 0.1,  f0: F("film", 110), f1: F("film", 110) },
-  { id: "byfwd",  units: 0.9,  f0: F("backyard", 0),  f1: F("backyard", 60) }, // through the frame to the yard
+  { id: "lvfwd",  units: 0.9,  f0: F("living", 0),   f1: F("living", 60)  }, // through the front door into the living room
+  { id: "lvhold", units: 0.4,  f0: F("living", 60),  f1: F("living", 60)  },
+  { id: "ktfwd",  units: 0.9,  f0: F("kitchen", 0),  f1: F("kitchen", 60) }, // through to the kitchen
+  { id: "kthold", units: 0.4,  f0: F("kitchen", 60), f1: F("kitchen", 60) },
+  { id: "dkfwd",  units: 0.9,  f0: F("deck", 0),     f1: F("deck", 60)    }, // out the rear doors to the deck
   { id: "byhold", units: 0.5,  f0: F("backyard", 60), f1: F("backyard", 60) },
   { id: "byrev",  units: 0.6,  f0: F("backyard", 60), f1: F("backyard", 0)  }, // and back out
   { id: "hold3b", units: 0.1,  f0: F("film", 110), f1: F("film", 110) },
@@ -124,7 +131,8 @@ function roundedPath(x, y, w, h, r) {
 }
 
 function drawFrame(index) {
-  const img = frames[index];
+  let img = frames[index];
+  for (let k = index; !img && k >= 0; k--) img = frames[k];   // nearest frame already loaded
   if (!img) return;
   const cw = canvas.width, ch = canvas.height;
   ctx.fillStyle = GROUND;
@@ -163,7 +171,7 @@ function loadImage(i) {
     img.onerror = () => { frames[i] = null; done(); };
     function done() {
       loaded++;
-      const pct = Math.round((loaded / FRAME_COUNT) * 100);
+      const pct = Math.min(100, Math.round((loaded / FIRST_CHUNK) * 100));
       loaderBar.style.width = pct + "%";
       loaderPct.textContent = pct;
       resolve();
@@ -172,15 +180,24 @@ function loadImage(i) {
   });
 }
 
+const FIRST_CHUNK = F("film", 40);   // hero + most of clip 1 must be in before we show the page
+let nextToLoad = 0;
+function loadNext() {
+  if (nextToLoad >= FRAME_COUNT) return;
+  const i = nextToLoad++;
+  loadImage(i).then(() => {
+    if (i === currentFrame) requestAnimationFrame(() => drawFrame(currentFrame));
+    loadNext();
+  });
+}
 async function preload() {
-  await Promise.all([...Array(10).keys()].map(loadImage));
+  await Promise.all([...Array(FIRST_CHUNK).keys()].map(loadImage));
+  nextToLoad = FIRST_CHUNK;
   sizeCanvas();
   drawFrame(0);
-  const rest = [];
-  for (let i = 10; i < FRAME_COUNT; i++) rest.push(loadImage(i));
-  await Promise.all(rest);
   loaderEl.classList.add("done");
   playHeroIntro();
+  for (let k = 0; k < 6; k++) loadNext();   // stream the rest, six at a time, in scroll order
 }
 
 /* ——— Band sections ——— */

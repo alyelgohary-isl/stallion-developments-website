@@ -266,7 +266,7 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .stat .stat-label { display: block; font-size: 0.9rem; color: rgba(242, 239, 231, 0.7); margin-top: 0.4rem; }
 
 /* ——— Scroll runway ——— */
-#scroll-container { height: 1350vh; position: relative; z-index: 0; }
+#scroll-container { height: 1600vh; position: relative; z-index: 0; }
 
 /* ——— Page flow (shared layout for home flow + inner pages) ——— */
 
@@ -656,7 +656,7 @@ a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid v
   .beat-heading { font-size: clamp(2rem, 8.5vw, 3rem); }
   .badge-strip { display: none; }
   .stats-section { justify-content: center; padding-top: 0; }
-  #scroll-container { height: 950vh; }
+  #scroll-container { height: 1150vh; }
 
   .page { padding-top: 70px; }
   .page-hero.has-media .wrap { grid-template-columns: 1fr; }
