@@ -238,6 +238,8 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
   width: 3.2rem; height: 1px; background: var(--moss);
   margin-left: 0.7rem; opacity: 0.55;
 }
+.beat-eyebrow { font-style: normal; font-family: var(--font-body); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.interlude .beat-heading { font-size: clamp(2rem, 3.4vw, 3.2rem); }
 .beat-heading {
   font-size: clamp(2.3rem, 4.2vw, 4rem);
   line-height: 1.02;
@@ -264,7 +266,7 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .stat .stat-label { display: block; font-size: 0.9rem; color: rgba(242, 239, 231, 0.7); margin-top: 0.4rem; }
 
 /* ——— Scroll runway ——— */
-#scroll-container { height: 850vh; position: relative; z-index: 0; }
+#scroll-container { height: 1350vh; position: relative; z-index: 0; }
 
 /* ——— Page flow (shared layout for home flow + inner pages) ——— */
 
@@ -312,6 +314,27 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .page-hero .badge-strip { max-width: 40rem; }
 .hero-media img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 18px; }
 .hero-media.wide img { aspect-ratio: 4 / 3; }
+.hero-media-loop video { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 18px; background: var(--paper); }
+
+/* Ambient loop behind a page hero (muted video over its poster, brand-dark gradient on top) */
+.page-hero.has-loop { position: relative; overflow: hidden; min-height: 64vh; display: flex; align-items: center; border-bottom: 0; }
+.page-hero.has-loop .wrap { position: relative; z-index: 1; }
+.hero-loop { position: absolute; inset: 0; z-index: 0; }
+.hero-loop img, .hero-loop video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero-loop::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(22,27,20,0.94) 0%, rgba(22,27,20,0.8) 36%, rgba(22,27,20,0.28) 100%),
+              linear-gradient(180deg, rgba(22,27,20,0.35) 0%, rgba(22,27,20,0.15) 50%, rgba(22,27,20,0.9) 100%); }
+.page-hero.has-loop .lede { color: var(--ink); opacity: 0.86; }
+
+/* Scroll-scrubbed hero (inner pages): runway gives the scroll span, hero sticks inside it */
+.scrub-runway { height: 320vh; position: relative; }
+.sticky-hero { position: sticky; top: 0; min-height: 100vh; box-sizing: border-box; display: flex; align-items: center; }
+.seasons-card canvas { display: block; width: 100%; aspect-ratio: 1; border-radius: 18px; background: var(--paper); }
+.season-tabs { list-style: none; display: flex; gap: 0.35rem; margin-top: 0.9rem; padding: 0; }
+.season-tabs li { flex: 1; text-align: center; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); padding: 0.55rem 0 0.45rem; border-top: 1px solid var(--hairline); transition: color 0.3s, border-color 0.3s; }
+.season-tabs li.is-active { color: var(--ink-soft); border-color: var(--pine); }
+.season-tabs li.is-current { color: var(--ink); border-color: var(--moss); }
+.season-caption { margin-top: 0.6rem; font-family: var(--font-display); font-style: italic; color: var(--moss); font-size: 1.05rem; }
 .status-label { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; font-weight: 600; color: var(--moss); letter-spacing: 0.02em; }
 .status-label .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--moss); box-shadow: 0 0 0 4px rgba(169, 195, 154, 0.18); }
 .status-label.soon .dot { background: var(--slate); box-shadow: 0 0 0 4px rgba(147, 167, 196, 0.18); }
@@ -486,9 +509,10 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 
 /* Gallery */
 .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.8rem; }
-.gallery img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; aspect-ratio: 1; }
+.gallery figure { display: grid; grid-template-rows: 1fr auto; min-width: 0; }
+.gallery img { width: 100%; height: auto; object-fit: cover; border-radius: 14px; aspect-ratio: 1; }
 .gallery figure:first-child { grid-row: span 2; }
-.gallery figure:first-child img { aspect-ratio: auto; }
+.gallery figure:first-child img { aspect-ratio: auto; height: 100%; min-height: 0; }
 .gallery figcaption { font-size: 0.8rem; color: var(--ink-mute); margin-top: 0.4rem; }
 
 /* Nearby cards */
@@ -632,10 +656,22 @@ a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid v
   .beat-heading { font-size: clamp(2rem, 8.5vw, 3rem); }
   .badge-strip { display: none; }
   .stats-section { justify-content: center; padding-top: 0; }
-  #scroll-container { height: 600vh; }
+  #scroll-container { height: 950vh; }
 
   .page { padding-top: 70px; }
   .page-hero.has-media .wrap { grid-template-columns: 1fr; }
+  .scrub-runway { height: 260vh; }
+  .sticky-hero { padding-top: 5rem; padding-bottom: 1rem; align-items: flex-start; }
+  .sticky-hero .breadcrumbs, .sticky-hero .badge-strip { display: none; }
+  .sticky-hero h1 { font-size: clamp(1.7rem, 6.4vw, 2.3rem); margin-top: 0.6rem; }
+  .sticky-hero .lede { font-size: 0.92rem; margin-top: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sticky-hero .hero-ctas { margin-top: 1rem; flex-direction: row; flex-wrap: wrap; gap: 0.5rem; }
+  .sticky-hero .hero-ctas .btn { padding: 0.62rem 0.95rem; font-size: 0.84rem; }
+  .sticky-hero .wrap { gap: 1rem; }
+  .seasons-card canvas { max-height: 36vh; width: auto; margin: 0 auto; }
+  .season-tabs { margin-top: 0.6rem; }
+  .season-tabs li { font-size: 0.7rem; padding: 0.45rem 0 0.35rem; }
+  .season-caption { font-size: 0.95rem; margin-top: 0.4rem; }
   .statement, .featured, .team-teaser, .trust, .form-layout, .band-cta { grid-template-columns: 1fr; }
   .featured-body { padding: 1.5rem 1.4rem 1.8rem; }
   .card-grid, .card-grid.cols-3, .card-grid.cols-4 { grid-template-columns: 1fr; }
@@ -661,6 +697,10 @@ a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid v
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-loop video, .hero-media-loop video { display: none; }
+  .hero-media-loop { background: url("../assets/img/maple-aerial-2.webp") center/cover; border-radius: 18px; aspect-ratio: 1; }
+  .scrub-runway { height: auto; }
+  .sticky-hero { position: static; min-height: 0; }
   .marquee-wrap { display: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }

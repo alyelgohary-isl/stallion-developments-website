@@ -22,3 +22,6 @@ Thumbs.db
 # Logs and temp
 *.log
 *.tmp
+
+# Generation workspace (stills, clips, proof pages) — heavy, regenerable via tools/
+work/

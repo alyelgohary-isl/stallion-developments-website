@@ -2,33 +2,73 @@
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FRAME_COUNT = 246;
 const GROUND = "#161b14";          // matches --cream
 const FRAME_RADIUS = 16;           // css px, rounded card edge on the film
 const HEADER_H = 84;               // css px, keeps the card clear of the fixed header
-const framePath = (i) => `frames/frame_${String(i + 1).padStart(4, "0")}.webp`;
 
-/* Scroll progress → frame mapping. Six clips with short holds at each
-   boundary so every message gets a beat of stillness.
-   Clip frame ranges (0-based): 1:0–36  2:37–73  3:74–110  4:111–147  5:148–184  6:185–245 */
-const FRAME_SEGMENTS = [
-  { p0: 0.0,  p1: 0.11, f0: 0,   f1: 0   }, // hero hold — the finished home
-  { p0: 0.11, p1: 0.25, f0: 0,   f1: 36  }, // clip 1 — roof lifts
-  { p0: 0.25, p1: 0.27, f0: 36,  f1: 36  },
-  { p0: 0.27, p1: 0.39, f0: 37,  f1: 73  }, // clip 2 — upper floor strips
-  { p0: 0.39, p1: 0.41, f0: 73,  f1: 73  },
-  { p0: 0.41, p1: 0.53, f0: 74,  f1: 110 }, // clip 3 — ground floor strips
-  { p0: 0.53, p1: 0.55, f0: 110, f1: 110 },
-  { p0: 0.55, p1: 0.66, f0: 111, f1: 147 }, // clip 4 — down to the lot
-  { p0: 0.66, p1: 0.68, f0: 147, f1: 147 },
-  { p0: 0.68, p1: 0.80, f0: 148, f1: 184 }, // clip 5 — it rebuilds
-  { p0: 0.80, p1: 0.82, f0: 184, f1: 184 },
-  { p0: 0.82, p1: 0.97, f0: 185, f1: 245 }, // clip 6 — rise to aerial
-  { p0: 0.97, p1: 1.0,  f0: 245, f1: 245 },
+/* ——— Film sources + timeline ———
+   The film is a list of frame sources (the original deconstruction plus the
+   generated cutaways from tools/kie.py) and a timeline of segments that map
+   scroll progress onto frames. Segment lengths are relative "units"; they are
+   normalised to 0..1 at load, so adding a clip never breaks the others.
+   Text sections in index.html reference segments by id: data-seg="clip1:0.15,clip1:0.95". */
+const SOURCES = {
+  film:     { dir: "frames",          prefix: "frame_", count: 246 }, // 6 clips @12fps
+  bedroom:  { dir: "frames/bedroom",  prefix: "br_",    count: 61  }, // cutaway: rise into the upper floor
+  backyard: { dir: "frames/backyard", prefix: "by_",    count: 61  }, // cutaway: through the frame to the yard
+  glow:     { dir: "frames/glow",     prefix: "gl_",    count: 61  }, // ending: dusk, windows warm up
+};
+const FILES = [];
+const OFFSET = {};
+for (const [key, src] of Object.entries(SOURCES)) {
+  OFFSET[key] = FILES.length;
+  for (let i = 0; i < src.count; i++) FILES.push(`${src.dir}/${src.prefix}${String(i + 1).padStart(4, "0")}.webp`);
+}
+const F = (src, i) => OFFSET[src] + i;
+const FRAME_COUNT = FILES.length;
+const framePath = (i) => FILES[i];
+
+/* Original clip frame ranges (0-based): 1:0–36  2:37–73  3:74–110  4:111–147  5:148–184  6:185–245 */
+const TIMELINE = [
+  { id: "hero",   units: 0.9,  f0: F("film", 0),   f1: F("film", 0)   }, // hero hold — the finished home
+  { id: "clip1",  units: 1.0,  f0: F("film", 0),   f1: F("film", 36)  }, // roof lifts
+  { id: "hold1",  units: 0.15, f0: F("film", 36),  f1: F("film", 36)  },
+  { id: "clip2",  units: 1.0,  f0: F("film", 37),  f1: F("film", 73)  }, // upper floor strips
+  { id: "hold2",  units: 0.1,  f0: F("film", 73),  f1: F("film", 73)  },
+  { id: "brfwd",  units: 0.9,  f0: F("bedroom", 0),  f1: F("bedroom", 60)  }, // rise into the bedroom
+  { id: "brhold", units: 0.5,  f0: F("bedroom", 60), f1: F("bedroom", 60)  },
+  { id: "brrev",  units: 0.6,  f0: F("bedroom", 60), f1: F("bedroom", 0)   }, // and back out
+  { id: "hold2b", units: 0.1,  f0: F("film", 73),  f1: F("film", 73)  },
+  { id: "clip3",  units: 1.0,  f0: F("film", 74),  f1: F("film", 110) }, // ground floor strips
+  { id: "hold3",  units: 0.1,  f0: F("film", 110), f1: F("film", 110) },
+  { id: "byfwd",  units: 0.9,  f0: F("backyard", 0),  f1: F("backyard", 60) }, // through the frame to the yard
+  { id: "byhold", units: 0.5,  f0: F("backyard", 60), f1: F("backyard", 60) },
+  { id: "byrev",  units: 0.6,  f0: F("backyard", 60), f1: F("backyard", 0)  }, // and back out
+  { id: "hold3b", units: 0.1,  f0: F("film", 110), f1: F("film", 110) },
+  { id: "clip4",  units: 1.0,  f0: F("film", 111), f1: F("film", 147) }, // down to the lot
+  { id: "hold4",  units: 0.15, f0: F("film", 147), f1: F("film", 147) },
+  { id: "clip5",  units: 1.0,  f0: F("film", 148), f1: F("film", 184) }, // it rebuilds
+  { id: "hold5",  units: 0.15, f0: F("film", 184), f1: F("film", 184) },
+  { id: "clip6",  units: 1.2,  f0: F("film", 185), f1: F("film", 245) }, // rise to aerial
+  { id: "glow",   units: 0.9,  f0: F("glow", 0),   f1: F("glow", 60)  }, // dusk, windows warm up
+  { id: "end",    units: 0.3,  f0: F("glow", 60),  f1: F("glow", 60)  },
 ];
+{
+  const total = TIMELINE.reduce((a, s) => a + s.units, 0);
+  let acc = 0;
+  for (const s of TIMELINE) { s.p0 = acc / total; acc += s.units; s.p1 = acc / total; }
+}
+const SEG = Object.fromEntries(TIMELINE.map((s) => [s.id, s]));
+/* "clip1:0.15" → progress 15% of the way into segment clip1 */
+function at(ref) {
+  const [id, frac] = ref.trim().split(":");
+  const s = SEG[id];
+  if (!s) { console.warn("unknown segment", id); return 0; }
+  return s.p0 + (parseFloat(frac ?? "0")) * (s.p1 - s.p0);
+}
 
-const OVERLAY = { enter: 0.83, leave: 0.965, max: 0.9, fade: 0.035 };
-const MARQUEE = { enter: 0.67, leave: 0.815 };
+const OVERLAY = { enter: at("clip6:0.12"), leave: at("glow:0.97"), max: 0.9, fade: 0.03 };
+const MARQUEE = { enter: at("hold4:0.4"), leave: at("hold5:0.9") };
 
 /* ——— Lenis smooth scroll ——— */
 
@@ -100,7 +140,7 @@ function drawFrame(index) {
 }
 
 function progressToFrame(p) {
-  for (const s of FRAME_SEGMENTS) {
+  for (const s of TIMELINE) {
     if (p >= s.p0 && p <= s.p1) {
       const t = s.p1 === s.p0 ? 0 : (p - s.p0) / (s.p1 - s.p0);
       return Math.round(s.f0 + t * (s.f1 - s.f0));
@@ -119,14 +159,15 @@ let loaded = 0;
 function loadImage(i) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = img.onerror = () => {
-      frames[i] = img;
+    img.onload = () => { frames[i] = img; done(); };
+    img.onerror = () => { frames[i] = null; done(); };
+    function done() {
       loaded++;
       const pct = Math.round((loaded / FRAME_COUNT) * 100);
       loaderBar.style.width = pct + "%";
       loaderPct.textContent = pct;
       resolve();
-    };
+    }
     img.src = framePath(i);
   });
 }
@@ -182,9 +223,10 @@ function buildTimeline(section) {
 }
 
 bandSections.forEach((s) => {
+  const [enterRef, leaveRef] = s.dataset.seg.split(",");
   sectionState.set(s, {
-    enter: parseFloat(s.dataset.enter) / 100,
-    leave: parseFloat(s.dataset.leave) / 100,
+    enter: at(enterRef),
+    leave: at(leaveRef),
     tl: buildTimeline(s),
     countersFired: false,
   });
@@ -221,7 +263,8 @@ function updateBand(p) {
     const st = sectionState.get(s);
     const inRange = p >= st.enter && p <= st.leave;
     if (s === heroSection) {
-      const o = gsap.utils.clamp(0, 1, 1 - (p - 0.015) / 0.07);
+      const h = SEG.hero;
+      const o = gsap.utils.clamp(0, 1, 1 - (p - (h.p0 + 0.12 * (h.p1 - h.p0))) / (0.65 * (h.p1 - h.p0)));
       s.style.opacity = o;
       s.classList.toggle("is-active", o > 0.01);
       return;
@@ -296,11 +339,12 @@ ScrollTrigger.create({
   trigger: ".page-flow",
   start: "top 60%",
   onEnter: () => {
-    gsap.to(["#canvas-wrap", "#band"], { autoAlpha: 0, duration: 0.4 });
+    gsap.to(["#canvas-wrap", "#band", "#dark-overlay", "#marquee"], { autoAlpha: 0, duration: 0.4 });
     document.querySelector(".site-header").classList.add("solid");
   },
   onLeaveBack: () => {
     gsap.to(["#canvas-wrap", "#band"], { autoAlpha: 1, duration: 0.4 });
+    gsap.set(["#dark-overlay", "#marquee"], { visibility: "visible" });
     document.querySelector(".site-header").classList.remove("solid");
   },
 });
@@ -309,7 +353,7 @@ ScrollTrigger.create({
 
 const runwayTargets = {
   "#top": 0,
-  "#flow": () => scrollContainer.offsetHeight * 0.13,
+  "#flow": () => scrollContainer.offsetHeight * SEG.clip1.p0,
 };
 
 document.querySelectorAll('a[href^="#"]').forEach((a) => {
@@ -334,7 +378,19 @@ window.addEventListener("resize", () => {
   drawFrame(currentFrame);
 });
 
+/* ——— QA hook: /?p=0.42 jumps straight to that film progress after preload ——— */
+
+function jumpToProgress() {
+  const q = new URLSearchParams(location.search).get("p");
+  if (q === null) return;
+  const p = Math.min(1, Math.max(0, parseFloat(q)));
+  const y = p * (scrollContainer.offsetHeight - window.innerHeight);
+  lenis.scrollTo(y, { immediate: true });
+  window.scrollTo(0, y);
+  ScrollTrigger.refresh();
+}
+
 /* ——— Go ——— */
 
 sizeCanvas();
-preload();
+preload().then(jumpToProgress);
