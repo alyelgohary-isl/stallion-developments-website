@@ -382,6 +382,10 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .featured-body .hero-ctas { margin-top: 1.8rem; }
 
 /* Terms / spec tables */
+.spec-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem 1.4rem; margin-top: 1.4rem; }
+.spec-list div { border-top: 1px solid var(--hairline); padding-top: 0.55rem; }
+.spec-list dt { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; }
+.spec-list dd { margin-top: 0.15rem; font-size: 1rem; font-weight: 500; color: var(--ink); }
 .terms { border-top: 1px solid var(--hairline); }
 .terms > div {
   display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
@@ -422,11 +426,11 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .card-media.placeholder .ph-mark { font-family: var(--font-display); font-style: italic; font-size: clamp(3rem, 6vw, 5rem); line-height: 0.9; color: rgba(169, 195, 154, 0.55); }
 .card-media.placeholder .ph-note { position: absolute; bottom: 1.2rem; right: 1.2rem; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
 .card-media .status-label { position: absolute; top: 1rem; left: 1rem; background: rgba(22, 27, 20, 0.85); padding: 0.4rem 0.75rem; border-radius: 999px; }
-.card-body { padding: 1.4rem 1.5rem 1.6rem; display: grid; gap: 0.5rem; align-content: start; }
+.card-body { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; gap: 0.5rem; }
 .card-body h3 { font-size: clamp(1.6rem, 2.4vw, 2.1rem); line-height: 1.05; }
 .card-desc { color: var(--ink); font-size: 1rem; }
 .card-meta { color: var(--ink-soft); font-size: 0.9rem; }
-.card-body .link-arrow { margin-top: 0.6rem; }
+.card-body .link-arrow { margin-top: auto; padding-top: 0.9rem; }
 
 /* Feature grid (Why Stallion, protections, key features) */
 .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1.6rem, 3vw, 3rem) clamp(1.4rem, 3vw, 2.6rem); }
