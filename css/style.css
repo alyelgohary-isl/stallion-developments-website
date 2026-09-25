@@ -551,6 +551,8 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 /* Forms */
 .form-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(2rem, 4vw, 4rem); align-items: start; }
 .form { display: grid; gap: 1rem; }
+.recaptcha-note { font-size: 0.74rem; color: var(--ink-mute); }
+.recaptcha-note a { color: var(--ink-soft); }
 .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .field { display: grid; gap: 0.4rem; }
 .field label { font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }

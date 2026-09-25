@@ -48,18 +48,56 @@
     counters.forEach((el) => cio.observe(el));
   }
 
-  /* Forms: validate natively, post to data-endpoint when one is configured,
-     otherwise show the success state locally. */
-  document.querySelectorAll("form.form, form.news-form").forEach((form) => {
+  /* Forms. All forms post to the Formspree endpoint in js/config.js, which
+     relays them by email to the client. reCAPTCHA v3 runs invisibly on submit
+     and Formspree verifies the token server-side. A honeypot field is added to
+     every form as a second, free layer. With no endpoint configured, the form
+     just shows its local success state. */
+  const CFG = window.STALLION || {};
+  const forms = document.querySelectorAll("form.form, form.news-form");
+
+  function loadRecaptcha() {
+    if (!CFG.recaptchaSiteKey || document.getElementById("recaptcha-lib")) return;
+    const s = document.createElement("script");
+    s.id = "recaptcha-lib";
+    s.src = "https://www.google.com/recaptcha/api.js?render=" + encodeURIComponent(CFG.recaptchaSiteKey);
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+  }
+  function captchaToken(action) {
+    return new Promise((resolve) => {
+      if (!CFG.recaptchaSiteKey || !window.grecaptcha) return resolve("");
+      try {
+        grecaptcha.ready(() => grecaptcha.execute(CFG.recaptchaSiteKey, { action }).then(resolve, () => resolve("")));
+      } catch (_) { resolve(""); }
+    });
+  }
+
+  forms.forEach((form) => {
+    // honeypot: hidden from people, tempting to bots; Formspree drops any submission that fills it
+    const hp = document.createElement("input");
+    hp.type = "text"; hp.name = "_gotcha"; hp.tabIndex = -1; hp.autocomplete = "off"; hp.setAttribute("aria-hidden", "true");
+    hp.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
+    form.appendChild(hp);
+    // load reCAPTCHA once a visitor shows intent (keeps the badge off pages nobody submits from)
+    form.addEventListener("focusin", loadRecaptcha, { once: true });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
-      const endpoint = form.dataset.endpoint;
+      const endpoint = form.dataset.endpoint || CFG.formEndpoint;
       const btn = form.querySelector('[type="submit"]');
       if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Sending…"; }
       try {
         if (endpoint) {
-          const res = await fetch(endpoint, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+          const name = form.dataset.form || (form.classList.contains("news-form") ? "newsletter" : "form");
+          const data = new FormData(form);
+          data.append("_subject", `Stallion website: ${name.replace(/-/g, " ")}`);
+          data.append("form", name);
+          data.append("page", location.href);
+          const token = await captchaToken("submit");
+          if (token) data.append("g-recaptcha-response", token);
+          const res = await fetch(endpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
           if (!res.ok) throw new Error("Request failed");
         }
         form.classList.add("sent");
@@ -67,7 +105,7 @@
         if (ok) ok.scrollIntoView({ behavior: "smooth", block: "center" });
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
-        alert("Something went wrong sending your message. Please email info@stalliondevelopments.com.");
+        alert("Something went wrong sending your message. Please email " + (CFG.notifyEmail || "info@stalliondevelopments.com") + ".");
       }
     });
   });
